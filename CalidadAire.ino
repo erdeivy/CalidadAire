@@ -20,12 +20,37 @@ void loop() {
   // Wait a few seconds between measurements.
   delay(2000);
 
-am2302();
-mq7();
-mq135();
+//am2302();
+  double co = mq7();
+  double co2 = mq135();
+  float hum = dht.readHumidity();
+  float temp = dht.readTemperature();
+
+  sendValues(hum, temp, co, co2);
   
   Serial.println(" ");
 
+}
+
+void sendValues(float hum, float temp, double co, double co2){
+  String result = "{";
+  result = addValue(result, "humedad", (double)hum);
+  result = addValue(result, "temperatura", (double)temp);
+  result = addValue(result, "co", co);
+  result = addValue(result, "co2", co2);
+  result = result + "}";
+  Serial.print(result);
+}
+
+String addValue(String input, String propertyName, double propertyValue){
+  String result = input;
+  if(!isnan(propertyValue)){
+    if(result.length()>1){
+      result = result + ", ";
+    }
+    result = result + "\"" + propertyName + "\": " + propertyValue;
+  }
+  return result;
 }
 
 void printValue(String parametro, double valor){
@@ -49,7 +74,7 @@ void am2302(){
 printValue("Temp", t);
 }
 
-void mq7(){
+double mq7(){
     // MQ-7
   int mq7_adc = analogRead(3);
   float mq7_voltaje = mq7_adc * (5.0 / 1023.0);
@@ -60,10 +85,11 @@ void mq7(){
   if(digitalRead(3) == 0){
     mq7_umbral = "true";
   }
-printValue("Monoxido de Carbono", monoxidoDeCarbono);
+  //printValue("Monoxido de Carbono", monoxidoDeCarbono);
+  return monoxidoDeCarbono;
 }
 
-void mq135(){
+double mq135(){
      // MQ-135
   int mq135_adc = analogRead(5);
   float mq135_voltaje = mq135_adc * (5.0 / 1023.0);
@@ -76,6 +102,7 @@ void mq135(){
   if(digitalRead(5) == 0){
     mq135_umbral = "true";
   }
-  printValue("Dioxido de Carbono", dioxidoDeCarbono);
+  //printValue("Dioxido de Carbono", dioxidoDeCarbono);
+  return dioxidoDeCarbono;
 
 }
